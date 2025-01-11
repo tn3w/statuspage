@@ -1,8 +1,8 @@
 <p align="center">
     <picture>
-        <source height="512" media="(prefers-color-scheme: dark)" srcset="https://github.com/tn3w/statuspage/releases/download/logo/statuspage_dark.webp">
-        <source height="512" media="(prefers-color-scheme: light)" srcset="https://github.com/tn3w/statuspage/releases/download/logo/statuspage_light.webp">
-        <img height="512" alt="Picture" src="https://github.com/tn3w/statuspage/releases/download/logo/statuspage_light.webp">
+        <source height="512" media="(prefers-color-scheme: dark)" srcset="https://github.com/tn3w/statuspage/releases/download/image/statuspage_dark.webp">
+        <source height="512" media="(prefers-color-scheme: light)" srcset="https://github.com/tn3w/statuspage/releases/download/image/statuspage_light.webp">
+        <img height="512" alt="Picture" src="https://github.com/tn3w/statuspage/releases/download/image/statuspage_light.webp">
     </picture>
 </p>
 <h1 align="center">Status Page</h1>
