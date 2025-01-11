@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="refresh" content="60">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{ service.name }} - Status Page</title>
+        {% if service.is_online %}
+        <link rel="icon" type="image/webp" href="/favicons/green.webp">
+        {% else %}
+        <link rel="icon" type="image/webp" href="/favicons/red.webp">
+        {% endif %}
+        <style>
+            :root {
+                --bg-primary: #ffffff;
+                --bg-secondary: #edf2f7;
+                --text-primary: #1a1f36;
+                --text-secondary: #4a5568;
+                --accent-color: #00b894;
+                --border-color: #cbd5e0;
+                --status-bar-bg: #e2e8f0;
+                --card-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15);
+                --no-data-color: #d1d5db;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root:not(.light-theme) {
+                    --bg-primary: #1a1f36;
+                    --bg-secondary: #141829;
+                    --text-primary: #f8f9fa;
+                    --text-secondary: #a5b0c4;
+                    --border-color: #2d3748;
+                    --status-bar-bg: #2d3748;
+                    --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+                    --no-data-color: #4b5563;
+                }
+            }
+
+            @media (prefers-color-scheme: light) {
+                :root:not(.dark-theme) {
+                    --bg-primary: #ffffff;
+                    --bg-secondary: #edf2f7;
+                    --text-primary: #1a1f36;
+                    --text-secondary: #4a5568;
+                    --accent-color: #00b894;
+                    --border-color: #cbd5e0;
+                    --status-bar-bg: #e2e8f0;
+                    --card-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15);
+                    --no-data-color: #d1d5db;
+                }
+            }
+
+            :root.dark-theme {
+                --bg-primary: #1a1f36;
+                --bg-secondary: #141829;
+                --text-primary: #f8f9fa;
+                --text-secondary: #a5b0c4;
+                --border-color: #2d3748;
+                --status-bar-bg: #2d3748;
+                --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+                --no-data-color: #4b5563;
+            }
+
+            :root.light-theme {
+                --bg-primary: #ffffff;
+                --bg-secondary: #edf2f7;
+                --text-primary: #1a1f36;
+                --text-secondary: #4a5568;
+                --accent-color: #00b894;
+                --border-color: #cbd5e0;
+                --status-bar-bg: #e2e8f0;
+                --card-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15);
+                --no-data-color: #d1d5db;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                background-color: var(--bg-secondary);
+                color: var(--text-primary);
+                line-height: 1.5;
+                min-height: 100vh;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 1rem;
+            }
+
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem 0;
+                margin-bottom: 2rem;
+            }
+
+            .logo-section {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: var(--text-primary);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .back-link {
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 0.875rem;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .back-link:hover {
+                color: var(--text-primary);
+            }
+
+            .logo-dot {
+                width: 8px;
+                height: 8px;
+                background-color: var(--accent-color);
+                border-radius: 50%;
+            }
+
+            .theme-toggle {
+                background: none;
+                border: none;
+                color: var(--text-primary);
+                cursor: pointer;
+                padding: 0.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .theme-toggle svg {
+                width: 20px;
+                height: 20px;
+                fill: var(--text-primary);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root:not(.light-theme) .theme-toggle .sun-icon {
+                    display: block;
+                }
+                :root:not(.light-theme) .theme-toggle .moon-icon {
+                    display: none;
+                }
+            }
+
+            @media (prefers-color-scheme: light) {
+                :root:not(.dark-theme) .theme-toggle .sun-icon {
+                    display: none;
+                }
+                :root:not(.dark-theme) .theme-toggle .moon-icon {
+                    display: block;
+                }
+            }
+
+            :root.dark-theme .theme-toggle .sun-icon {
+                display: block;
+            }
+            :root.dark-theme .theme-toggle .moon-icon {
+                display: none;
+            }
+
+            :root.light-theme .theme-toggle .sun-icon {
+                display: none;
+            }
+            :root.light-theme .theme-toggle .moon-icon {
+                display: block;
+            }
+
+            .card {
+                background-color: var(--bg-primary);
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                box-shadow: var(--card-shadow);
+            }
+
+            .status-header {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .status-dot {
+                width: 15px;
+                height: 15px;
+                background-color: var(--accent-color);
+                border-radius: 50%;
+                animation: blink 2s infinite;
+            }
+
+            @keyframes blink {
+                50% {
+                    opacity: 0.5;
+                }
+            }
+
+            .service-list {
+                list-style: none;
+            }
+
+            .service-item {
+                padding: 1rem 0;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .service-item:last-child {
+                border-bottom: none;
+            }
+
+            .service-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+            }
+
+            .service-name {
+                color: var(--text-primary);
+                text-decoration: none;
+            }
+
+            .service-status {
+                color: var(--accent-color);
+            }
+
+            .status-bar {
+                height: 8px;
+                background-color: var(--status-bar-bg);
+                border-radius: 4px;
+                display: flex;
+                gap: 1px;
+                position: relative;
+                overflow: visible;
+            }
+
+            .status-segment {
+                flex: 1;
+                height: 100%;
+                position: relative;
+                cursor: pointer;
+                overflow: visible;
+            }
+
+            .status-segment:first-child {
+                border-top-left-radius: 4px;
+                border-bottom-left-radius: 4px;
+            }
+
+            .status-segment:last-child {
+                border-top-right-radius: 4px;
+                border-bottom-right-radius: 4px;
+            }
+
+            .status-segment::before {
+                content: attr(data-description);
+                position: absolute;
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: var(--bg-primary);
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                white-space: nowrap;
+                box-shadow: var(--card-shadow);
+                opacity: 0;
+                transition: opacity 0.2s;
+                z-index: 10;
+                pointer-events: none;
+                color: var(--text-primary);
+            }
+
+            .status-segment:hover::before {
+                opacity: 1;
+            }
+
+            .status-up {
+                background-color: #00b894;
+            }
+
+            .status-partial {
+                background-color: #f39c12;
+            }
+
+            .status-down {
+                background-color: #e74c3c;
+            }
+
+            .status-no-data {
+                background-color: var(--no-data-color);
+            }
+
+            .metrics-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .metric-card {
+                background-color: var(--bg-primary);
+                padding: 1rem;
+                border-radius: 8px;
+                text-align: center;
+                box-shadow: var(--card-shadow);
+            }
+
+            .metric-value {
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin-bottom: 0.5rem;
+            }
+
+            .metric-label {
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+            }
+
+            .response-graph {
+                height: 300px;
+                position: relative;
+                padding: 20px 0;
+                margin: 0;
+                display: flex;
+                align-items: flex-end;
+            }
+
+            .graph-line {
+                position: absolute;
+                bottom: 0;
+                left: 70px;
+                right: 35px;
+                height: 100%;
+                display: flex;
+                align-items: flex-end;
+            }
+
+            .graph-point {
+                position: absolute;
+                width: 8px;
+                height: 8px;
+                background-color: var(--accent-color);
+                border-radius: 50%;
+                transform: translate(-50%, 50%);
+                cursor: pointer;
+                transition: opacity 0.2s;
+            }
+
+            .graph-points-container {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: 100%;
+            }
+
+            .graph-point:hover {
+                opacity: 0.8;
+            }
+
+            .graph-point::before {
+                content: attr(data-ms) "ms";
+                position: absolute;
+                top: -25px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: var(--bg-primary);
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                white-space: nowrap;
+                box-shadow: var(--card-shadow);
+                opacity: 0;
+                transition: opacity 0.2s;
+                z-index: 1;
+            }
+
+            .graph-point:hover::before {
+                opacity: 1;
+            }
+
+            .response-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+
+            .stat-card {
+                background-color: var(--bg-secondary);
+                padding: 1rem;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin-bottom: 0.5rem;
+                color: var(--text-primary);
+            }
+
+            .stat-label {
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+            }
+
+            .graph-axis {
+                position: absolute;
+                left: 70px;
+                right: 35px;
+                width: calc(100% - 105px);
+                border-top: 1px dashed var(--border-color);
+                color: var(--text-secondary);
+                font-size: 0.75rem;
+            }
+
+            .graph-axis span {
+                position: absolute;
+                left: -35px;
+                transform: translateY(-50%);
+                width: 30px;
+                text-align: right;
+            }
+
+            .footer {
+                margin: 2rem auto;
+                padding: 0 1rem;
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                max-width: 1200px;
+            }
+
+            .footer-item {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+            }
+
+            .footer-label {
+                color: var(--text-primary);
+                font-weight: 500;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 0.5rem;
+                }
+
+                .metrics-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .response-graph {
+                    height: 200px;
+                }
+
+                .graph-line {
+                    left: 60px;
+                    right: 25px;
+                }
+
+                .graph-points-container {
+                    padding: 0 8px;
+                }
+
+                .graph-point {
+                    width: 6px;
+                    height: 6px;
+                }
+
+                .graph-axis {
+                    left: 60px;
+                    right: 25px;
+                    width: calc(100% - 85px);
+                }
+
+                .graph-axis span {
+                    left: -30px;
+                    font-size: 0.7rem;
+                    width: 25px;
+                }
+
+                .response-stats {
+                    grid-template-columns: 1fr;
+                    gap: 0.75rem;
+                }
+
+                .stat-value {
+                    font-size: 1.25rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header class="header">
+                <div class="logo-section">
+                    <div class="logo">
+                        <span class="logo-dot"></span>
+                        Status Page
+                    </div>
+                    <a href="/" class="back-link">⬅ Back to list</a>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 24 24">
+                        <path d="M10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6m0 2a5 5 0 1 1 0-10 5 5 0 0 1 0 10m0-15a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V1a1 1 0 0 1 1-1m0 16a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1M1 9h2a1 1 0 1 1 0 2H1a1 1 0 0 1 0-2m16 0h2a1 1 0 0 1 0 2h-2a1 1 0 0 1 0-2m.071-6.071a1 1 0 0 1 0 1.414l-1.414 1.414a1 1 0 1 1-1.414-1.414l1.414-1.414a1 1 0 0 1 1.414 0M5.757 14.243a1 1 0 0 1 0 1.414L4.343 17.07a1 1 0 1 1-1.414-1.414l1.414-1.414a1 1 0 0 1 1.414 0zM4.343 2.929l1.414 1.414a1 1 0 0 1-1.414 1.414L2.93 4.343A1 1 0 0 1 4.343 2.93zm11.314 11.314 1.414 1.414a1 1 0 0 1-1.414 1.414l-1.414-1.414a1 1 0 1 1 1.414-1.414"/>
+                    </svg>
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"/>
+                    </svg>
+                </button>
+            </header>
+
+            <div class="card">
+                <div class="status-header">
+                    <span class="status-dot{% if not service.is_online %} status-dot-red{% endif %}"></span>
+                    <h2>{{ service.name }} is {% if service.is_online %}operational{% else %}down{% endif %}</h2>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">{{ uptime_24h }}%</div>
+                    <div class="metric-label">Last 24 hours</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ uptime_7d }}%</div>
+                    <div class="metric-label">Last 7 days</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ uptime_30d }}%</div>
+                    <div class="metric-label">Last 30 days</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ uptime_90d }}%</div>
+                    <div class="metric-label">Last 90 days</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Uptime last 90 days</h2>
+                <ul class="service-list">
+                    <li class="service-item">
+                        <div class="service-header">
+                            <span class="service-status">{{ uptime_90d }}% Up</span>
+                        </div>
+                        <div class="status-bar">
+                            {% for segment in status %}
+                            <div class="status-segment status-{{ segment.name }}" data-description="{{ segment.description }}"></div>
+                            {% endfor %}
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>Response Time</h2>
+                <div class="response-graph">
+                    {% for step in y_axis_steps | reverse %}
+                    <div class="graph-axis" style="top: {{ loop.index0 * 20 + 20 }}%;">
+                        <span>{{ step }}ms</span>
+                    </div>
+                    {% endfor %}
+                    <div class="graph-line">
+                        <div class="graph-points-container">
+                            {% for point in graph_points %}
+                            <div class="graph-point" style="left: {{ point.left }}; bottom: {{ point.bottom }}" data-ms="{{ point.value }}"></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="response-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ avg_response_time }}ms</div>
+                        <div class="stat-label">Avg. response time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ max_response_time }}ms</div>
+                        <div class="stat-label">Max. response time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ min_response_time }}ms</div>
+                        <div class="stat-label">Min. response time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-item">
+                <span id="load-time">{{ load_time }}</span>
+            </div>
+            <div class="footer-item">
+                <span class="footer-label">Reload in:</span>
+                <span id="countdown">60s</span>
+            </div>
+        </footer>
+
+        <script>
+            function toggleTheme() {
+                const html = document.documentElement;
+                const currentTheme = html.classList.contains('dark-theme') ? 'dark' : 
+                                   html.classList.contains('light-theme') ? 'light' : 
+                                   window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                html.classList.remove('dark-theme', 'light-theme');
+                html.classList.add(`${newTheme}-theme`);
+
+                localStorage.setItem('theme-preference', newTheme);
+            }
+
+            const savedTheme = localStorage.getItem('theme-preference');
+            if (savedTheme) {
+                document.documentElement.classList.add(`${savedTheme}-theme`);
+            }
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme-preference')) {
+                    console.log('System theme preference changed');
+                }
+            });
+
+            const loadTime = new Date();
+            function updateCountdown() {
+                const now = new Date();
+                const timeElapsed = Math.floor((now - loadTime) / 1000);
+                const timeRemaining = 60 - timeElapsed;
+                
+                if (timeRemaining <= 0) {
+                    document.getElementById('countdown').textContent = 'Reloading...';
+                    return;
+                }
+                
+                document.getElementById('countdown').textContent = `${timeRemaining}s`;
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        </script>
+    </body>
+</html>
